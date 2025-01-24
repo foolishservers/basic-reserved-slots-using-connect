@@ -111,7 +111,7 @@ public void OnClientDisconnect(int client)
 
 public bool OnClientPreConnectEx(const char[] name, char password[255], const char[] ip, const char[] steamID, char rejectReason[255])
 {
-	LogBRSCDebugMessage("[OnClientPreConnectEx] steamID: %s, GetClientCount(false): %d, GetClientCount(true): %d, MaxClients: %d", steamID, GetClientCount(false), GetClientCount(true), MaxClients);
+	LogBRSCDebugMessage("[OnClientPreConnectEx] steamID: %s, GetClientCount(false): %d, GetClientCount(true): %d, MaxClients: %d VisibleMaxPlayers: %d", steamID, GetClientCount(false), GetClientCount(true), MaxClients, g_icvarVisibleMaxPlayers);
 
 	if (!GetConVarInt(g_hcvarEnabled))
 	{
@@ -119,10 +119,10 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 		return true;
 	}
 
-	if (GetClientCount(false) < MaxClients)
+	if (GetClientCount(false) < MaxClients && GetClientCount(false) <= g_icvarVisibleMaxPlayers)
 	{
-		LogBRSCDebugMessage("[OnClientPreConnectEx] GetClientCount(false) < MaxClients");
-		return true;	
+		LogBRSCDebugMessage("[OnClientPreConnectEx] GetClientCount(false) < MaxClients && GetClientCount(false) <= g_icvarVisibleMaxPlayers");
+		return true;
 	}
 
 	AdminId admin = FindAdminByIdentity(AUTHMETHOD_STEAM, steamID);
@@ -144,6 +144,12 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 
 	if(accessToReservation)
 	{
+		if(GetClientCount(false) < MaxClients)
+		{
+			LogBRSCDebugMessage("[OnClientPreConnectEx] accessToReservation = true, GetClientCount(false) < MaxClients");
+			return true;
+		}
+
 		LogBRSCMessage("Client with steamID '%s' used reservation slot", steamID);
 
 		LogBRSCDebugMessage("[OnClientPreConnectEx] Finding client to be kicked...");
@@ -190,7 +196,15 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 		else
 		{
 			LogBRSCDebugMessage("[OnClientPreConnectEx] Could not find client to be kicked");
+			Format(rejectReason, sizeof(rejectReason), "You can't use reservation, because could not find client to be kicked");
+			return false;
 		}
+	}
+	else
+	{
+		LogBRSCDebugMessage("[OnClientPreConnectEx] Server is full.");
+		Format(rejectReason, sizeof(rejectReason), "Server is full");
+		return false;
 	}
 	
 	return true;

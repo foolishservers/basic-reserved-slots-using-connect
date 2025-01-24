@@ -4,9 +4,11 @@ ConVar g_hcvarReason;
 ConVar g_hcvarCooldownTime;
 ConVar g_hcvarPlayerCountCondition;
 ConVar g_hcvarRedirectionServerAddress;
+ConVar g_hcvarVisibleMaxPlayers;
 
 int g_icvarCooldownTime = 60;
 int g_icvarPlayerCountCondition = 28;
+int g_icvarVisibleMaxPlayers = 32;
 
 char g_sRedirectionServerAddress[128] = "";
 
@@ -19,10 +21,14 @@ void SetUpConVars()
 	g_hcvarCooldownTime = CreateConVar("sm_brsc_cooldown_time", "60", "Cooldown time for re use of reservation slot", FCVAR_NONE);
 	g_hcvarPlayerCountCondition = CreateConVar("sm_brsc_player_count", "28", "Minimum players count for kick player queue", FCVAR_NONE);
 	g_hcvarRedirectionServerAddress = CreateConVar("sm_brsc_redirection_server_address", "", "Redirected server address for kicked players (\"\" for No redirection)", FCVAR_NONE);
+	g_hcvarVisibleMaxPlayers = FindConVar("sv_visiblemaxplayers");
+	
+	g_icvarVisibleMaxPlayers = g_hcvarVisibleMaxPlayers.IntValue;
 
 	HookConVarChange(g_hcvarCooldownTime, ConVarCooldownTime);
 	HookConVarChange(g_hcvarPlayerCountCondition, ConVarPlayerCountCondition);
 	HookConVarChange(g_hcvarRedirectionServerAddress, ConVarRedirectionServerAddress);
+	HookConVarChange(g_hcvarVisibleMaxPlayers, ConVarVisibleMaxPlayers);
 
 	AutoExecConfig(true, "Basic_Reserved_Slots_using_Connect");
 }
@@ -57,4 +63,18 @@ void ConVarPlayerCountCondition(ConVar convar, const char[] oldValue, const char
 void ConVarRedirectionServerAddress(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	strcopy(g_sRedirectionServerAddress, sizeof(g_sRedirectionServerAddress), newValue);
+}
+
+void ConVarVisibleMaxPlayers(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	int iNewValue = StringToInt(newValue);
+
+	if(iNewValue > 0)
+	{
+		g_icvarVisibleMaxPlayers = iNewValue;
+	}
+	else
+	{
+		g_icvarVisibleMaxPlayers = MaxClients;
+	}
 }

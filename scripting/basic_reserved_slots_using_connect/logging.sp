@@ -1,10 +1,5 @@
 #if defined _DEBUG
-    #define LogBRSCDebugMessage(%1) DebugLog(%1)
-#else
-    #define LogBRSCDebugMessage(%1);
-#endif
-
-stock void DebugLog(const char[] message, any ...)
+stock void LogBRSCDebugMessage(const char[] message, any ...)
 {
     int size = strlen(message) + 255;
     char[] fMessage = new char[size];
@@ -17,6 +12,7 @@ stock void DebugLog(const char[] message, any ...)
     
     LogToFile(fileName, fMessage);
 }
+#endif
 
 stock void LogBRSCMessage(const char[] message, any ...)
 {
