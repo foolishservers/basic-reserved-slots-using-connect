@@ -111,7 +111,9 @@ public void OnClientDisconnect(int client)
 
 public bool OnClientPreConnectEx(const char[] name, char password[255], const char[] ip, const char[] steamID, char rejectReason[255])
 {
-	LogBRSCDebugMessage("[OnClientPreConnectEx] steamID: %s, GetClientCount(false): %d, GetClientCount(true): %d, MaxClients: %d VisibleMaxPlayers: %d", steamID, GetClientCount(false), GetClientCount(true), MaxClients, g_icvarVisibleMaxPlayers);
+	int playerCount = GetPlayerCount();
+
+	LogBRSCDebugMessage("[OnClientPreConnectEx] steamID: %s, GetPlayerCount(): %d, MaxClients: %d VisibleMaxPlayers: %d", steamID, playerCount, MaxClients, g_icvarVisibleMaxPlayers);
 
 	if (!GetConVarInt(g_hcvarEnabled))
 	{
@@ -119,9 +121,9 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 		return true;
 	}
 
-	if (GetClientCount(false) < MaxClients && GetClientCount(false) <= g_icvarVisibleMaxPlayers)
+	if (playerCount < MaxClients && playerCount <= g_icvarVisibleMaxPlayers)
 	{
-		LogBRSCDebugMessage("[OnClientPreConnectEx] GetClientCount(false) < MaxClients && GetClientCount(false) <= g_icvarVisibleMaxPlayers");
+		LogBRSCDebugMessage("[OnClientPreConnectEx] GetPlayerCount() < MaxClients && GetPlayerCount() <= g_icvarVisibleMaxPlayers");
 		return true;
 	}
 
@@ -144,9 +146,9 @@ public bool OnClientPreConnectEx(const char[] name, char password[255], const ch
 
 	if(accessToReservation)
 	{
-		if(GetClientCount(false) < MaxClients)
+		if(playerCount < MaxClients)
 		{
-			LogBRSCDebugMessage("[OnClientPreConnectEx] accessToReservation = true, GetClientCount(false) < MaxClients");
+			LogBRSCDebugMessage("[OnClientPreConnectEx] accessToReservation = true, GetPlayerCount() < MaxClients");
 			return true;
 		}
 
@@ -354,6 +356,19 @@ stock bool IsValidClient(int client, bool replaycheck = true)
 	
 	return true;
 }
+
+int GetPlayerCount()
+{
+	int players = 0;
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+			players++;
+    }
+	
+    return players;
+} 
 
 bool checkIfUsageExceeded(Database db, const char[] steamID)
 {
